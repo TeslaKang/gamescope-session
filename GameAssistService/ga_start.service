@@ -1,0 +1,9 @@
+[Unit]
+Description=my start service
+After=graphical-session.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/GameAssist/statusResume.sh
+
+[Install]
+WantedBy=multi-user.target

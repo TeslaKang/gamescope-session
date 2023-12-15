@@ -1,0 +1,10 @@
+[Unit]
+Description=after suspend process
+After=suspend.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/GameAssist/statusResume.sh
+
+[Install]
+WantedBy=suspend.target
+

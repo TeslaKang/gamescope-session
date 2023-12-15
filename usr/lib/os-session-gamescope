@@ -1,0 +1,16 @@
+#! /usr/bin/bash
+
+# File this script will modify, in addition to (potentially) the per-user sentinel file
+CONF_FILE="/etc/sddm.conf.d/zz-steamos-autologin.conf"
+
+{
+  echo "[Autologin]"
+  echo "Session=gamescope-session-steam"
+  echo "Relogin=true"
+  echo "User=deck"
+} > "$CONF_FILE"
+
+systemctl reset-failed sddm
+systemctl restart sddm
+echo "Restarted SDDM"
+

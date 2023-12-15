@@ -1,0 +1,50 @@
+#!/bin/bash
+# set -e
+
+# nothing is better!!
+exit 0
+
+BRANCH_FILE="/etc/steamos-branch"
+BRANCH_LOCAL=$(cat $BRANCH_FILE)
+
+select_rel() {
+  echo "rel" > $BRANCH_FILE
+}
+
+select_beta() {
+  echo "beta" > $BRANCH_FILE
+}
+
+if [[ $# -eq 1 ]]; then
+  case "$1" in
+    "-c")
+      case "$BRANCH_LOCAL" in
+        "rel")
+          echo "$BRANCH_LOCAL"
+          ;;
+        "beta")
+          echo "$BRANCH_LOCAL"
+          ;;
+        *)
+          echo "rel"
+          ;;
+      esac
+      exit 0
+      ;;
+    "-l")
+      echo rel
+      echo beta
+      exit 0
+      ;;
+    "rel")
+      select_rel
+      exit 0
+      ;;
+    "beta")
+      select_beta
+      exit 0
+      ;;
+  esac
+fi
+
+echo "Usage: steamos-select-branch <rel,beta,main>" 1>&2

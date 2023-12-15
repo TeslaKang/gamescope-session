@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+
+  <vendor>Gameassist</vendor>
+  <vendor_url>http://www.steampowered.com</vendor_url>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-cmdGPU">
+    <description>run GPU cmd</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/cmdGPU.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-resetCPU">
+    <description>reset CPU</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/resetCPU.sh</annotate>
+  </action>
+
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-resetGPU">
+    <description>reset GPU</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/resetGPU.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-resetAdvCPU">
+    <description>reset SMT/BOOST</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/resetAdvCPU.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-resetTDP">
+    <description>reset SMT/BOOST</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/resetTDP.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-statusInit">
+    <description>restore TDP</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/statusInit.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-statusResume">
+    <description>resume TDP</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/statusResume.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setBOOST">
+    <description>set BOOST</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setBOOST.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setCPU">
+    <description>set CPU</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setCPU.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setGPU">
+    <description>set GPU</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setGPU.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setPOLICY">
+    <description>set CPU POLICY</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setPOLICY.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setSMT">
+    <description>set SMT</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setSMT.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-setTDP">
+    <description>set TDP</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/setTDP.sh</annotate>
+  </action>
+
+</policyconfig>

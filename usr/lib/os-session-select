@@ -1,0 +1,43 @@
+#! /usr/bin/bash
+
+set -e
+
+die() { echo >&2 "!! $*"; exit 1; }
+
+if [[ $EUID -ne 0 ]]; then
+    exec pkexec --disable-internal-agent "$0" "$@"
+fi
+
+session="${1:-gamescope}"
+
+session_launcher="os-session-desktop"
+
+# We use "plasma" as "desktop" to hook up to SteamOS's scripts
+case "$session" in
+  plasma-wayland-persistent)
+    session_launcher="os-session-desktop"
+  ;;
+  plasma-x11-persistent)
+    session_launcher="os-session-desktop"
+  ;;
+  desktop|plasma)
+    session_launcher="os-session-desktop"
+  ;;
+  gamescope|gamescope-session)
+    session_launcher="os-session-gamescope"
+  ;;
+  *)
+    echo >&2 "!! Unrecognized session '$session'"
+    exit 1
+  ;;
+esac
+
+if [[ "$session_launcher" == "os-session-desktop" ]]; then
+    if [[ -f /etc/gamescope-oobe ]]; then
+        rm /etc/gamescope-oobe
+    fi
+fi
+
+exec /usr/lib/$session_launcher
+#exec pkexec /usr/lib/$session_launcher
+

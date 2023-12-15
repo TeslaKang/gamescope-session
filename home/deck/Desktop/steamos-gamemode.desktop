@@ -1,0 +1,23 @@
+[Desktop Entry]
+Comment[ko_KR]=
+Comment=
+Comment[en_US]=
+Exec=/usr/lib/os-session-select gamescope
+GenericName[ko_KR]=
+GenericName=
+GenericName[en_US]=
+Icon=steamdeck-gaming-return.svg
+MimeType=
+Name[ko_KR]=Return to Gaming mode
+Name=Return to Gaming mode
+Name[en_US]=Return to Gaming mode
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-SubstituteUID=false
+X-KDE-Username=
+

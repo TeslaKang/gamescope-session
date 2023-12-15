@@ -1,0 +1,10 @@
+[Unit]
+Description=after hibernate process
+After=hibernate.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/GameAssist/statusResume.sh
+
+[Install]
+WantedBy=hibernate.target
+

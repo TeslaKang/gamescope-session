@@ -1,0 +1,9 @@
+[Unit]
+Description=before suspend process
+Before=suspend.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/GameAssist/statusInit.sh
+
+[Install]
+WantedBy=suspend.target

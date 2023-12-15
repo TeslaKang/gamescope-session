@@ -1,0 +1,10 @@
+[Unit]
+Description=before hibernate process
+Before=hibernate.target
+
+[Service]
+ExecStart=/bin/bash /usr/share/GameAssist/statusInitOn.sh
+
+[Install]
+WantedBy=hibernate.target
+
