@@ -7,4 +7,3 @@ ExecStart=/bin/bash /usr/share/GameAssist/statusResume.sh
 
 [Install]
 WantedBy=suspend.target
-

@@ -74,6 +74,28 @@
 		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/statusInit.sh</annotate>
   </action>
 
+  <action id="org.gameassist.policykit.steamos.pkexec.run-statusInitOn">
+    <description>restore TDP with LED On</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/statusInitOn.sh</annotate>
+  </action>
+
+  <action id="org.gameassist.policykit.steamos.pkexec.run-statusInitOff">
+    <description>restore TDP with LED Off</description>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+		<annotate key="org.freedesktop.policykit.exec.path">/usr/share/GameAssist/statusInitOff.sh</annotate>
+  </action>
+
   <action id="org.gameassist.policykit.steamos.pkexec.run-statusResume">
     <description>resume TDP</description>
     <icon_name>package-x-generic</icon_name>

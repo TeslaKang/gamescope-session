@@ -3,7 +3,7 @@ Description=before suspend process
 Before=suspend.target
 
 [Service]
-ExecStart=/bin/bash /usr/share/GameAssist/statusInit.sh
+ExecStart=/bin/bash /usr/share/GameAssist/statusInitOff.sh
 
 [Install]
 WantedBy=suspend.target
