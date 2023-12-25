@@ -7,6 +7,8 @@ fi
 
 echo "---- Installing gamescope-session..."
 
+./build.sh
+
 if [ -f /etc/os-release ]; then
     if [ ! -f /etc/os-release.bak_gcs ]; then
         cp /etc/os-release /etc/os-release.bak_gcs
