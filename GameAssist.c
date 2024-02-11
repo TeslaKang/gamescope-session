@@ -572,6 +572,14 @@ int GetCpuTemp()
 	{
 		int t = atoi(temp) / 1000;
 
+		if (t <= 0)
+		{
+			if (ReadFileContent("/sys/class/thermal/thermal_zone1/temp", temp, 100) > 0)
+			{
+				t = atoi(temp) / 1000;
+			}
+		}
+
 		return t;
 	}
 	return -1;
