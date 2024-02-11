@@ -227,6 +227,7 @@ enum SupportDevice
 {
 	sdNone,
 	sdAOKZOE_A1,
+	sdAOKZOE_A1Pro,
 	sdAYANEO_2,
 	sdAYANEO_2021,
 	sdAYANEO_2021Pro,
@@ -255,6 +256,7 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 		if (strcasecmp(ManufacturerName, "AOKZOE") == 0)
 		{
 			if (strcasecmp(ProductName, "AOKZOE A1 AR07") == 0) g_SupportDevice = sdAOKZOE_A1;
+			else if (strcasecmp(ProductName, "AOKZOE A1 Pro") == 0) g_SupportDevice = sdAOKZOE_A1Pro;
 		}
 		else if (strcasecmp(ManufacturerName, "AYADEVICE") == 0 || strcasecmp(ManufacturerName, "AYANEO") == 0)
 		{
@@ -316,13 +318,13 @@ static int CheckFanEnable(int Force)
 	{
 		// fctOneXPlayer
 		if (g_SupportDevice == sdOne_XPlayerMiniIntel || g_SupportDevice == sdOne_XPlayerMiniAMD) g_FanControlType = fctOneXPlayerMini;
-		else if (g_SupportDevice == sdOne_XPlayerMiniPro || g_SupportDevice == sdAOKZOE_A1) g_FanControlType = fctOneXPlayerMini;
+		else if (g_SupportDevice == sdOne_XPlayerMiniPro || g_SupportDevice == sdAOKZOE_A1 || g_SupportDevice == sdAOKZOE_A1Pro) g_FanControlType = fctOneXPlayerMini;
 		else if (g_SupportDevice == sdOne_XPlayer2) g_FanControlType = fctOneXPlayer2;
 		else if (g_SupportDevice == sdAYANEO_2) g_FanControlType = fctAyaNeo2;
 		else if (g_SupportDevice == sdAYANEO_AIR || g_SupportDevice == sdAYANEO_AIRLite || g_SupportDevice == sdAYANEO_AIRPro) g_FanControlType = fctAyaNeoAir;
 		else if (g_SupportDevice == sdAYANEO_AIRPlus) g_FanControlType = fctAyaNeoAirPlus;
 		else if (g_SupportDevice == sdAYANEO_AIR1S) g_FanControlType = fctAyaNeoAir1S;
-		else if (g_SupportDevice == sdGPD_WinMax2AMD) g_FanControlType = fctGpdWinMax2;
+		else if (g_SupportDevice == sdGPD_WinMax2Intel || g_SupportDevice == sdGPD_WinMax2AMD) g_FanControlType = fctGpdWinMax2;
 		else if (g_SupportDevice == sdGPD_Win4)
 		{
 			g_FanControlType = fctGpdWin4;
