@@ -351,7 +351,7 @@ static int CheckFanEnable(int Force)
 	return g_FanControlType >= fctOneXPlayer;
 }
 
-static int CheckModel()
+static int CheckModelSub()
 {
 	char ManufacturerName[110] = { 0, };
 	char ProductName[110] = { 0, };
@@ -376,6 +376,13 @@ static int CheckModel()
 		}
 	}
 	return 0;
+}
+
+static int CheckModel()
+{
+	static int ret = CheckModelSub();
+
+	return ret;
 }
 
 static void AyaNeoLed(int Off)
@@ -431,6 +438,7 @@ static void AyaNeoLed(int Off)
 	}
 }
 
+extern "C"
 int GetFanValueType()
 {
 	if (g_FanControlType == fctAyaNeoAirPlus) return 0; // don't support
@@ -439,6 +447,7 @@ int GetFanValueType()
 	return -1;
 }
 
+extern "C"
 int GetFanValue()
 {
 	if (g_FanControlType == fctAyaNeo2 || g_FanControlType == fctAyaNeoAir1S)
@@ -511,6 +520,7 @@ int GetFanValue()
 	return -1;
 }
 
+extern "C"
 void UpdateFanControl(int FanSpeed)
 {
 	int max = -1;
@@ -543,6 +553,7 @@ void UpdateFanControl(int FanSpeed)
 	}
 }
 
+extern "C"
 void SetFanControlManual(int Manual)
 {
 	if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
@@ -564,38 +575,240 @@ void SetFanControlManual(int Manual)
 	if (Manual) UpdateFanControl(30);
 }
 
+// cpu temp code from mangohud(https://github.com/flightlessmango/MangoHud)
+#include <dirent.h>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <fstream>
+
+static bool starts_with(const std::string& s,  const char *t)
+{
+    return s.rfind(t, 0) == 0;
+}
+
+static bool ends_with(const std::string& s,  const char *t, bool icase = false)
+{
+    std::string s0(s);
+    std::string s1(t);
+
+    if (s0.size() < s1.size())
+        return false;
+
+    if (icase)
+	{
+        std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
+        std::transform(s1.begin(), s1.end(), s1.begin(), ::tolower);
+    }
+
+    size_t pos = s0.size() - s1.size();
+    return (s0.rfind(s1, pos) == pos);
+}
+
+enum LS_FLAGS
+{
+    LS_DIRS = 0x01,
+    LS_FILES = 0x02,
+};
+
+static std::vector<std::string> ls(const char* root, const char* prefix = nullptr, LS_FLAGS flags = LS_DIRS)
+{
+    std::vector<std::string> list;
+    struct dirent* dp;
+
+    DIR* dirp = opendir(root);
+    if (!dirp)
+	{
+        printf("Error opening directory '%s': %s\n", root, strerror(errno));
+        return list;
+    }
+
+    while ((dp = readdir(dirp)))
+	{
+        if ((prefix && !starts_with(dp->d_name, prefix))
+            || !strcmp(dp->d_name, ".")
+            || !strcmp(dp->d_name, ".."))
+            continue;
+
+        switch (dp->d_type)
+		{
+        case DT_LNK:
+		{
+            struct stat s;
+            std::string path(root);
+            if (path.back() != '/')
+                path += "/";
+            path += dp->d_name;
+
+            if (stat(path.c_str(), &s))
+                continue;
+
+            if (((flags & LS_DIRS) && S_ISDIR(s.st_mode))
+                || ((flags & LS_FILES) && S_ISREG(s.st_mode)))
+			{
+                list.push_back(dp->d_name);
+            }
+            break;
+        }
+        case DT_DIR:
+            if (flags & LS_DIRS)
+                list.push_back(dp->d_name);
+            break;
+        case DT_REG:
+            if (flags & LS_FILES)
+                list.push_back(dp->d_name);
+            break;
+        }
+    }
+
+    closedir(dirp);
+    return list;
+}
+
+static std::string read_line(const std::string& filename)
+{
+    std::string line;
+    std::ifstream file(filename);
+    if (file.fail()){
+        return line;
+    }
+    std::getline(file, line);
+    return line;
+}
+
+static bool file_exists(const std::string& path)
+{
+    struct stat s;
+    return !stat(path.c_str(), &s) && !S_ISDIR(s.st_mode);
+}
+
+static bool find_input(const std::string& path, const char* input_prefix, std::string& input, const std::string& name)
+{
+    auto files = ls(path.c_str(), input_prefix, LS_FILES);
+    for (auto& file : files)
+	{
+        if (!ends_with(file, "_label"))
+            continue;
+
+        auto label = read_line(path + "/" + file);
+        if (label != name)
+            continue;
+
+        auto uscore = file.find_first_of("_");
+        if (uscore != std::string::npos)
+		{
+            file.erase(uscore, std::string::npos);
+            input = path + "/" + file + "_input";
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool find_fallback_input(const std::string& path, const char* input_prefix, std::string& input)
+{
+    auto files = ls(path.c_str(), input_prefix, LS_FILES);
+    if (!files.size())
+        return false;
+
+    std::sort(files.begin(), files.end());
+    for (auto& file : files)
+	{
+        if (!ends_with(file, "_input"))
+            continue;
+        input = path + "/" + file;
+		printf("fallback cpu %s input: %s\n", input_prefix, input.c_str());
+        return true;
+    }
+    return false;
+}
+
+static FILE *GetCpuFile()
+{
+    std::string name, path, input;
+    std::string hwmon = "/sys/class/hwmon/";
+
+    auto dirs = ls(hwmon.c_str());
+    for (auto& dir : dirs)
+	{
+        path = hwmon + dir;
+        name = read_line(path + "/name");
+
+        printf("hwmon: sensor name: %s\n", name.c_str());
+        if (name == "coretemp")
+		{
+            find_input(path, "temp", input, "Package id 0");
+            break;
+        }
+        else if ((name == "zenpower" || name == "k10temp"))
+		{
+            if (!find_input(path, "temp", input, "Tdie"))
+                find_input(path, "temp", input, "Tctl");
+            break;
+        }
+		else if (name == "atk0110")
+		{
+            find_input(path, "temp", input, "CPU Temperature");
+            break;
+        }
+		else if (name == "it8603")
+		{
+            find_input(path, "temp", input, "temp1");
+            break;
+        }
+		else if (starts_with(name, "nct"))
+		{
+            // Only break if nct module has TSI0_TEMP node
+            if (find_input(path, "temp", input, "TSI0_TEMP"))
+                break;
+
+        } else if (name == "asusec")
+		{
+            find_input(path, "temp", input, "CPU");
+            break;
+        }
+		else
+		{
+            path.clear();
+        }
+    }
+    if (path.empty() || (!file_exists(input) && !find_fallback_input(path, "temp", input)))
+	{
+        printf("Could not find cpu temp sensor location\n");
+        return NULL;
+    }
+	else
+	{
+        printf("hwmon: using input: %s\n", input.c_str());
+        return fopen(input.c_str(), "r");
+    }
+}
+
+static FILE *g_TempFile = NULL;
+
+extern "C"
 int GetCpuTemp()
 {
-	char temp[110] = { 0, };
-
-	if (ReadFileContent("/sys/class/thermal/thermal_zone2/temp", temp, 100) > 0)
+	if (g_TempFile)
 	{
-		int t = atoi(temp) / 1000;
+		int temp = -1;
 
-		if (t > 0) return t;
-	}
-	if (ReadFileContent("/sys/class/thermal/thermal_zone1/temp", temp, 100) > 0)
-	{
-		int t = atoi(temp) / 1000;
-
-		if (t > 0) return t;
-	}
-	if (ReadFileContent("/sys/class/thermal/thermal_zone0/temp", temp, 100) > 0)
-	{
-		int t = atoi(temp) / 1000;
-
-		if (t > 0) return t;
+		rewind(g_TempFile);
+		fflush(g_TempFile);
+		if (fscanf(g_TempFile, "%d", &temp) == 1) return temp / 1000;
 	}
 	return -1;
 }
 
+extern "C"
 int InitModel()
 {
+	if (!g_TempFile) g_TempFile = GetCpuFile();	
 	GetCpuVender();
 	return CheckModel();
 }
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	int ret = CheckModel();
 
@@ -613,4 +826,5 @@ void main(int argc, char* argv[])
 	// AyaNeo LED
 	if (argc >= 2 && strcmp(argv[1], "on") == 0) AyaNeoLed(1);
 	else if (argc >= 2 && strcmp(argv[1], "off") == 0) AyaNeoLed(0);
+	return 0;
 }
