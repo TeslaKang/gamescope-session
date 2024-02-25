@@ -237,6 +237,8 @@ enum SupportDevice
 	sdAYANEO_AIRPlus,
 	sdAYANEO_AIR1S,
 	sdAYANEO_NEXT,
+	sdAYANEO_KUN,
+	sdAYANEO_SLIDER,
 	sdGPD_WinMax2AMD,
 	sdGPD_WinMax2Intel,
 	sdGPD_Win4,
@@ -269,6 +271,8 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 			else if (strcasecmp(ProductName, "AYANEO 2021 Pro") == 0 || strcasecmp(ProductName, "AYANEO 2021 Retro Power") == 0) g_SupportDevice = sdAYANEO_2021Pro;
 			else if (strcasecmp(ProductName, "NEXT") == 0 || strcasecmp(ProductName,  "NEXT Pro") == 0 || strcasecmp(ProductName, "NEXT Advance") == 0) g_SupportDevice = sdAYANEO_NEXT;
 			else if (strcasecmp(ProductName, "AYANEO 2") == 0 || strcasecmp(ProductName, "GEEK") == 0) g_SupportDevice = sdAYANEO_2;
+			else if (strcasecmp(ProductName, "KUN") == 0) m_SupportDevice = sdAYANEO_KUN;
+			else if (strcasecmp(ProductName, "AS01") == 0) m_SupportDevice = sdAYANEO_SLIDER;
 		}
 		else if (strcasecmp(ManufacturerName, "GPD") == 0)
 		{
@@ -304,8 +308,10 @@ enum FanControlType
 	fctOneXPlayer2,
 	fctAyaNeo2,
 	fctAyaNeoAir,
-	fctAyaNeoAirPlus,
 	fctAyaNeoAir1S,
+	fctAyaNeoAirPlus,
+	fctAyaNeoKun,
+	fctAyaNeoSlider,
 	fctGpdWinMax2,
 	fctGpdWin4,
 	fctGpdWinMini,
@@ -322,8 +328,10 @@ static int CheckFanEnable(int Force)
 		else if (g_SupportDevice == sdOne_XPlayer2) g_FanControlType = fctOneXPlayer2;
 		else if (g_SupportDevice == sdAYANEO_2) g_FanControlType = fctAyaNeo2;
 		else if (g_SupportDevice == sdAYANEO_AIR || g_SupportDevice == sdAYANEO_AIRLite || g_SupportDevice == sdAYANEO_AIRPro) g_FanControlType = fctAyaNeoAir;
-		else if (g_SupportDevice == sdAYANEO_AIRPlus) g_FanControlType = fctAyaNeoAirPlus;
 		else if (g_SupportDevice == sdAYANEO_AIR1S) g_FanControlType = fctAyaNeoAir1S;
+		else if (g_SupportDevice == sdAYANEO_AIRPlus) g_FanControlType = fctAyaNeoAirPlus;
+		else if (g_SupportDevice == sdAYANEO_KUN) g_FanControlType = fctAyaNeoKun;
+		else if (g_SupportDevice == sdAYANEO_SLIDER) g_FanControlType = fctAyaNeoSlider;
 		else if (g_SupportDevice == sdGPD_WinMax2Intel || g_SupportDevice == sdGPD_WinMax2AMD) g_FanControlType = fctGpdWinMax2;
 		else if (g_SupportDevice == sdGPD_Win4)
 		{
@@ -441,7 +449,7 @@ static void AyaNeoLed(int Off)
 extern "C"
 int GetFanValueType()
 {
-	if (g_FanControlType == fctAyaNeoAirPlus) return 0; // don't support
+	if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoSlider) return 0; // don't support
 	else if (g_FanControlType == fctGpdWinMax2 || g_FanControlType == fctGpdWin4 || g_FanControlType == fctGpdWinMini) return 1; // rpm
 	else if (g_FanControlType > fctNone) return 2; // percent
 	return -1;
@@ -527,9 +535,9 @@ void UpdateFanControl(int FanSpeed)
 	int fan = -1;
 
 	if (g_FanControlType == fctAyaNeo2) max = 100;
-	else if (g_FanControlType == fctAyaNeoAir) max = 100;
+	else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S) max = 100;
+	else if (g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoSlider) max = 100;
 	else if (g_FanControlType == fctAyaNeoAirPlus) max = 255;
-	else if (g_FanControlType == fctAyaNeoAir1S) max = 100;
 	else if (g_FanControlType == fctOneXPlayer) max = g_CpuVendor == cvIntel ? 255 : 100;
 	else if (g_FanControlType == fctOneXPlayer2) max = 184;
 	else if (g_FanControlType == fctOneXPlayerMini) max = 255;
@@ -541,9 +549,9 @@ void UpdateFanControl(int FanSpeed)
 	if (fan >= 0)
 	{
 		if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44B, fan);
-		else if (g_FanControlType == fctAyaNeoAir) ECRamOperate(0, 0, 0, fan);
+		else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S) ECRamOperate(0, 0, 0x44B, fan);
+		else if (g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoSlider) ECRamOperate(0, 0, 0x44B, fan);
 		else if (g_FanControlType == fctAyaNeoAirPlus) ECRamOperate(0, 0, 0x1804, fan);
-		else if (g_FanControlType == fctAyaNeoAir1S) ECRamOperate(0, 0, 0x44B, fan);
 		else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4B, fan);
 		else if (g_FanControlType == fctOneXPlayer2) ECRamOperate(0, 0, 0x44B, fan);
 		else if (g_FanControlType == fctOneXPlayerMini) ECRamOperate(0, 0, 0x44B, fan);
@@ -557,9 +565,9 @@ extern "C"
 void SetFanControlManual(int Manual)
 {
 	if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctAyaNeoAir) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoSlider) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctAyaNeoAirPlus) ECRamOperate(0, 0, 0xd1c8, Manual == 0 ? 0x00 : 0xa5);
-	else if (g_FanControlType == fctAyaNeoAir1S) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctOneXPlayer2) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctOneXPlayerMini) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
