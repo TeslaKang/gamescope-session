@@ -138,10 +138,12 @@ if [ -z "$GAMESCOPECMD" ] ; then
     if [ -n "$SCREEN_WIDTH" ] && [ -n "$SCREEN_HEIGHT" ] ; then
         RESOLUTION="-W $SCREEN_WIDTH -H $SCREEN_HEIGHT"
     fi
-    
+
     if [ -z $VULKAN_ADAPTER ]; then
         GAMESCOPECMD="/usr/bin/gamescope \
         $CURSOR \
+        --max-scale 2 \
+        --adaptive-sync \
         -e \
         $RESOLUTION \
         --xwayland-count 2 \
@@ -149,10 +151,13 @@ if [ -z "$GAMESCOPECMD" ] ; then
         --default-touch-mode 4 \
         --hide-cursor-delay 3000 \
         --fade-out-duration 200 \
+        --cursor-scale-height 720 \
         -R $socket -T $stats"
      else
         GAMESCOPECMD="/usr/bin/gamescope \
         $CURSOR \
+        --max-scale 2 \
+        --adaptive-sync \
         -e \
         $RESOLUTION \
         --xwayland-count 2 \
@@ -160,6 +165,7 @@ if [ -z "$GAMESCOPECMD" ] ; then
         --default-touch-mode 4 \
         --hide-cursor-delay 3000 \
         --fade-out-duration 200 \
+        --cursor-scale-height 720 \
         --prefer-vk-device $VULKAN_ADAPTER \
         -R $socket -T $stats"
      fi
@@ -171,7 +177,6 @@ else
     else
         GAMESCOPECMD+=" --prefer-vk-device $VULKAN_ADAPTER -R $socket -T $stats"
     fi
-    
 fi
 
 # Attempt to fallback to a desktop session if something goes wrong too many times
@@ -296,4 +301,3 @@ for job in $(jobs -p); do
 	fi
 	kill -9 "$job"
 done
-

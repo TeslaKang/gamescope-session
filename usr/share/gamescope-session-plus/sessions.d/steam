@@ -15,9 +15,6 @@ function post_gamescope_start {
 	fi
 }
 
-# Show VRR controls in Steam
-export STEAM_GAMESCOPE_VRR_SUPPORTED=1
-
 # Enable Mangoapp
 export STEAM_MANGOAPP_PRESETS_SUPPORTED=1
 export STEAM_USE_MANGOAPP=1
@@ -30,7 +27,9 @@ export STEAM_GAMESCOPE_HAS_TEARING_SUPPORT=1
 # Enable tearing controls in steam
 export STEAM_GAMESCOPE_TEARING_SUPPORTED=1
 
-export STEAM_GAMESCOPE_HDR_SUPPORTED=1
+# Enable VRR controls in steam
+export STEAM_GAMESCOPE_VRR_SUPPORTED=1
+
 
 # Workaround for steam getting killed immediatly during reboot
 export STEAMOS_STEAM_REBOOT_SENTINEL="/tmp/steamos-reboot-sentinel"
@@ -74,6 +73,7 @@ export STEAM_GAMESCOPE_FANCY_SCALING_SUPPORT=1
 # Color management support
 export STEAM_GAMESCOPE_COLOR_MANAGED=1
 export STEAM_GAMESCOPE_VIRTUAL_WHITE=1
+export STEAM_GAMESCOPE_HDR_SUPPORTED=1
 
 # Set input method modules for Qt/GTK that will show the Steam keyboard
 export QT_IM_MODULE=steam
