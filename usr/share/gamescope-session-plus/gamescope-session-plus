@@ -29,6 +29,10 @@ gamescope_has_option() {
 export INTEL_DEBUG=norbc
 export mesa_glthread=true
 
+# This should be used by default by gamescope. Cannot hurt to force it anyway.
+# Reported better framelimiting with this enabled
+export ENABLE_GAMESCOPE_WSI=1
+
 # Force Qt applications to run under xwayland
 export QT_QPA_PLATFORM=xcb
 
@@ -61,6 +65,11 @@ touch "$GAMESCOPE_PATCHED_EDID_FILE"
 # and Gamescope will use for now.
 export GAMESCOPE_NV12_COLORSPACE=k_EStreamColorspace_BT601
 
+# Workaround older versions of vkd3d-proton setting this
+# too low (desc.BufferCount), resulting in symptoms that are potentially like
+# swapchain starvation.
+export VKD3D_SWAPCHAIN_LATENCY_FRAMES=3
+
 # Initially write no_display to our config file
 # so we don't get mangoapp showing up before Steam initializes
 # on OOBE and stuff.
@@ -88,22 +97,20 @@ ulimit -n 524288
 
 # Source device quirks if exists
 if [ -f /usr/share/gamescope-session-plus/device-quirks ]; then
-    . /usr/share/gamescope-session-plus/device-quirks
+	. /usr/share/gamescope-session-plus/device-quirks
 fi
 
 # Source client app specific configuration files
 set -a
-for i in ${CLIENT_CONFIG_DIR_USR}/${CLIENT} ${CLIENT_CONFIG_DIR_ETC}/${CLIENT} ${CLIENT_CONFIG_DIR_LOCAL}/${CLIENT} ;
-do
-    [[ -f "${i}" ]] && . "${i}"
+for i in ${CLIENT_CONFIG_DIR_USR}/${CLIENT} ${CLIENT_CONFIG_DIR_ETC}/${CLIENT} ${CLIENT_CONFIG_DIR_LOCAL}/${CLIENT}; do
+	[[ -f "${i}" ]] && . "${i}"
 done
 set +a
 
 # Source user configuration from ~/.config/environment.d
 set -a
-for i in "${HOME}"/.config/environment.d/*.conf ;
-do
-    [[ -f "${i}" ]] && . "${i}"
+for i in "${HOME}"/.config/environment.d/*.conf; do
+	[[ -f "${i}" ]] && . "${i}"
 done
 set +a
 
@@ -184,6 +191,11 @@ if [ -z "$GAMESCOPECMD" ]; then
 		BYPASS_STEAM_RESOLUTION="--bypass-steam-resolution"
 	fi
 
+	CUSTOM_REFRESH_RATES_OPTION=""
+	if [ -n "$CUSTOM_REFRESH_RATES" ] && gamescope_has_option "--custom-refresh-rates"; then
+		CUSTOM_REFRESH_RATES_OPTION="--custom-refresh-rates $CUSTOM_REFRESH_RATES"
+	fi
+
 	GAMESCOPECMD="/usr/bin/gamescope \
 		$CURSOR \
 		$RESOLUTION \
@@ -191,7 +203,9 @@ if [ -z "$GAMESCOPECMD" ]; then
 		$ORIENTATION_OPTION \
 		$DRM_MODE_OPTION \
 		$BYPASS_STEAM_RESOLUTION \
+		$ADAPTIVE_SYNC_OPTION \
 		$PANEL_TYPE_OPTION \
+		$CUSTOM_REFRESH_RATES_OPTION \
 		--prefer-output $OUTPUT_CONNECTOR \
 		--xwayland-count $XWAYLAND_COUNT \
 		--default-touch-mode $TOUCH_MODE \
@@ -217,24 +231,24 @@ SECONDS=0
 short_session_count=$(wc <"$short_session_tracker_file" -l)
 
 if [[ "$short_session_count" -ge "$short_session_count_before_reset" ]]; then
-    echo >&2 "gamescope-session-plus: detected broken ${CLIENT} or gamescope failure, will try to reset the session"
+	echo >&2 "gamescope-session-plus: detected broken ${CLIENT} or gamescope failure, will try to reset the session"
 
-    short_session_recover
+	short_session_recover
 
-    # rearm
-    rm "$short_session_tracker_file"
-    exit 1
+	# rearm
+	rm "$short_session_tracker_file"
+	exit 1
 fi
 
 # Log rotate the last session
 if [ -f "${HOME}"/.${CLIENT}-stdout.log ]; then
-    cp "${HOME}"/.${CLIENT}-stdout.log "${HOME}"/.${CLIENT}-stdout.log.old
+	cp "${HOME}"/.${CLIENT}-stdout.log "${HOME}"/.${CLIENT}-stdout.log.old
 fi
 if [ -f "${HOME}"/.gamescope-stdout.log ]; then
-    cp "${HOME}"/.gamescope-stdout.log "${HOME}"/.gamescope-stdout.log.old
+	cp "${HOME}"/.gamescope-stdout.log "${HOME}"/.gamescope-stdout.log.old
 fi
 if [ -f "${HOME}"/.gamescope-cmd.log ]; then
-    cp "${HOME}"/.gamescope-cmd.log "${HOME}"/.gamescope-cmd.log.old
+	cp "${HOME}"/.gamescope-cmd.log "${HOME}"/.gamescope-cmd.log.old
 fi
 
 if [ -f "/usr/local/bin/gamescope" ]; then
@@ -262,8 +276,8 @@ fi
 post_gamescope_start
 
 # Input method support if present
-if command -v /usr/bin/ibus-daemon > /dev/null; then
-    /usr/bin/ibus-daemon -d -r --panel=disable --emoji-extension=disable
+if command -v /usr/bin/ibus-daemon >/dev/null; then
+	/usr/bin/ibus-daemon -d -r --panel=disable --emoji-extension=disable
 fi
 
 # If we have mangoapp binary start it
