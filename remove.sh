@@ -42,6 +42,8 @@ rm -v -f /usr/lib/os-session-gamescope
 rm -v -f /usr/lib/os-session-select
 rm -v -f /usr/lib/systemd/user/gamescope-session-plus@.service
 
+rm -v -f /usr/libexec/gamescope-sdl-workaround
+
 rm -v -f /usr/share/applications/gamescope-mimeapps.list
 rm -v -f /usr/share/applications/steam_http_loader.desktop
 

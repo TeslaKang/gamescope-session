@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SYS_ID="$(cat /sys/devices/virtual/dmi/id/product_name)"
+
 declare -r CLIENT=$1
 declare -r CLIENT_CONFIG_DIR_USR=/usr/share/gamescope-session-plus/sessions.d
 declare -r CLIENT_CONFIG_DIR_ETC=/etc/gamescope-session-plus/sessions.d
@@ -15,8 +17,24 @@ post_gamescope_start() {
 	:
 }
 
+# default empty function to run after client exits
+post_client_shutdown() {
+	:
+}
+
+get_gamescope_binary() {
+	if [ -n "$GAMESCOPE_BIN" ]; then
+		echo $GAMESCOPE_BIN
+	elif /usr/libexec/gamescope-sdl-workaround && command -v /usr/bin/gamescope-legacy > /dev/null; then
+		# GPUs that require the SDL backend
+		echo "/usr/bin/gamescope-legacy"
+	else
+		echo "/usr/bin/gamescope"
+	fi
+}
+
 gamescope_has_option() {
-	if (gamescope --help 2>&1 | grep -e "$1" > /dev/null); then
+	if ($(get_gamescope_binary) --help 2>&1 | grep -e "$1" > /dev/null); then
 		return 0
 	fi
 
@@ -31,7 +49,12 @@ export mesa_glthread=true
 
 # This should be used by default by gamescope. Cannot hurt to force it anyway.
 # Reported better framelimiting with this enabled
-export ENABLE_GAMESCOPE_WSI=1
+if /usr/libexec/gamescope-sdl-workaround; then
+	# Skip on legacy hardware
+	export ENABLE_GAMESCOPE_WSI=0
+else
+	export ENABLE_GAMESCOPE_WSI=1
+fi
 
 # Force Qt applications to run under xwayland
 export QT_QPA_PLATFORM=xcb
@@ -187,7 +210,7 @@ if [ -z "$GAMESCOPECMD" ]; then
 	fi
 
 	BYPASS_STEAM_RESOLUTION=""
-	if gamescope_has_option "--bypass-steam-resolution"; then
+	if [ ! -n "$DONT_BYPASS_RESOLUTION" ] && gamescope_has_option "--bypass-steam-resolution"; then
 		BYPASS_STEAM_RESOLUTION="--bypass-steam-resolution"
 	fi
 
@@ -196,7 +219,13 @@ if [ -z "$GAMESCOPECMD" ]; then
 		CUSTOM_REFRESH_RATES_OPTION="--custom-refresh-rates $CUSTOM_REFRESH_RATES"
 	fi
 
-	GAMESCOPECMD="/usr/bin/gamescope \
+	BACKEND_OPTION=""
+	# Check if an older GPU that needs the SDL workaround is in use.
+	if [ -n "$BACKEND" ] && gamescope_has_option "--backend"; then
+		BACKEND_OPTION="--backend $BACKEND"
+	fi
+
+	GAMESCOPECMD="$(get_gamescope_binary) \
 		$CURSOR \
 		$RESOLUTION \
 		$INTERNAL_RESOLUTION \
@@ -206,6 +235,7 @@ if [ -z "$GAMESCOPECMD" ]; then
 		$ADAPTIVE_SYNC_OPTION \
 		$PANEL_TYPE_OPTION \
 		$CUSTOM_REFRESH_RATES_OPTION \
+		$BACKEND_OPTION \
 		--prefer-output $OUTPUT_CONNECTOR \
 		--xwayland-count $XWAYLAND_COUNT \
 		--default-touch-mode $TOUCH_MODE \
@@ -223,6 +253,7 @@ if [ -n "$VULKAN_ADAPTER" ]; then
 fi
 
 # Attempt to fallback to a desktop session if something goes wrong too many times
+# fixed by K.Y.H
 short_session_tracker_file="/tmp/steamos-short-session-tracker"
 short_session_duration=60
 short_session_count_before_reset=3
@@ -251,6 +282,7 @@ if [ -f "${HOME}"/.gamescope-cmd.log ]; then
 	cp "${HOME}"/.gamescope-cmd.log "${HOME}"/.gamescope-cmd.log.old
 fi
 
+# added by K.Y.H for arch linux
 if [ -f "/usr/local/bin/gamescope" ]; then
     GAMESCOPECMD=${GAMESCOPECMD/"/usr/bin/"/"/usr/local/bin/"}
 fi
@@ -287,6 +319,14 @@ if command -v mangoapp >/dev/null; then
 	done) &
 fi
 
+# Handle Galileo Mura Correction
+# This is applied here and not in device-quirks because it must be called after gamescope has started.
+if [[ ":Galileo:" =~ ":$SYS_ID:"  ]]; then
+  if command -v galileo-mura-setup > /dev/null; then
+    galileo-mura-setup &
+  fi
+fi
+
 # For compatibility with older user configuration overrides
 if [ -n "$STEAMCMD" ]; then
 	CLIENTCMD=$STEAMCMD
@@ -300,6 +340,8 @@ if [[ "$SECONDS" -lt "$short_session_duration" ]]; then
 else
 	rm "$short_session_tracker_file"
 fi
+
+post_client_shutdown
 
 # When the client exits, kill gamescope nicely
 kill $gamescope_pid
