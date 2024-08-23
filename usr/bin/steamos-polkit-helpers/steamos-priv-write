@@ -12,19 +12,18 @@ WRITE_VALUE="$2"
 function CommitWrite()
 {
 	if [ ! -z "$WRITE_VALUE" ]; then
+		echo "chmod a+w: $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p warning
+		chmod a+w "$WRITE_PATH"
 		echo "commit: $WRITE_VALUE -> $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p warning
-		echo "$WRITE_VALUE" > "$WRITE_PATH"
+		echo "$WRITE_VALUE" >"$WRITE_PATH"
 	fi
-
-	chmod a+w "$WRITE_PATH"
-    exit 0
+	exit 0
 }
 
 function DeclineWrite()
 {
-    echo "decline: $WRITE_VALUE -> $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p err
-    echo "$WRITE_VALUE" > "$WRITE_PATH"
-    exit 1
+	echo "decline: $WRITE_VALUE -> $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p err
+	exit 1
 }
 
 echo "checking: $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p warning
@@ -32,9 +31,9 @@ if [[ "$WRITE_PATH" == /sys/class/backlight/*/brightness ]]; then
 	CommitWrite
 fi
 
-if [[ "$WRITE_PATH" == /dev/drm_dp_aux0 ]]; then
-	CommitWrite
-fi
+#if [[ "$WRITE_PATH" == /dev/drm_dp_aux0 ]]; then
+#	CommitWrite
+#fi
 
 if [[ "$WRITE_PATH" == /sys/devices/platform/*/*/*/iio:device*/in_illuminance_integration_time ]]; then
 	CommitWrite
@@ -56,6 +55,10 @@ if [[ "$WRITE_PATH" == /sys/devices/platform/*/i2c-2/i2c-*/bmode ]]; then
 	CommitWrite
 fi
 
+if [[ "$WRITE_PATH" == /sys/class/leds/status\:white/led_brightness_multiplier ]]; then
+	CommitWrite
+fi
+
 if [[ "$(cat /sys/devices/virtual/dmi/id/product_name)" =~ "Jupiter" ]]; then
     if [[ "$WRITE_PATH" == /sys/class/drm/card*/device/power_dpm_force_performance_level ]]; then
 		CommitWrite
@@ -73,7 +76,7 @@ else
     	echo "commit: $WRITE_VALUE -> $WRITE_PATH" | systemd-cat -t p-steamos-priv-write -p warning
 		/usr/share/GameAssist/cmdGPU.sh power_dpm_force_performance_level $WRITE_VALUE
 		if [[ "$WRITE_VALUE" == "auto" ]]; then
-        	/usr/share/GameAssist/resetGPU.sh
+			/usr/share/GameAssist/resetGPU.sh
        	fi
        	exit 0
     fi
@@ -93,12 +96,12 @@ else
       	let power=$WRITE_VALUE/1000000
 
       	if [[ "$power" == "15" ]]; then
-         	/usr/share/GameAssist/resetTDP.sh
+			/usr/share/GameAssist/resetTDP.sh
       	else
-         	/usr/share/GameAssist/setTDP.sh $power
+			/usr/share/GameAssist/setTDP.sh $power
       	fi
 		exit 0
-   	fi
+    fi
 fi
 
 DeclineWrite
