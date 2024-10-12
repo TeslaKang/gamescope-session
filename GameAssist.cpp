@@ -53,13 +53,13 @@ static enum CpuVendor g_CpuVendor = cvUnknown;
 
 static void GetCpuVender()
 {
-    unsigned int level = 0;
-    unsigned int eax = 0;
+	unsigned int level = 0;
+	unsigned int eax = 0;
 	unsigned int ebx = 0;
 	unsigned int ecx = 0;
 	unsigned int edx = 0;
 
-    __get_cpuid(level, &eax, &ebx, &ecx, &edx);
+	__get_cpuid(level, &eax, &ebx, &ecx, &edx);
 	if (ebx == 0x756e6547) g_CpuVendor = cvIntel; /* Genu */
 	else if (ebx == 0x68747541) g_CpuVendor = cvAMD; /* Auth */
 }
@@ -68,13 +68,13 @@ static void GetCpuVender()
 
 static uint8_t IoRead8(uint16_t Port)
 {
-    return inb(Port);
+	return inb(Port);
 }
 
 static uint8_t IoWrite8(uint16_t Port, uint8_t Value)
 {
-    outb(Value, Port);
-    return Value;
+	outb(Value, Port);
+	return Value;
 }
 
 static uint8_t ECRamOperate(uint8_t isWin4, uint8_t isRead, uint16_t address, uint8_t data)
@@ -251,6 +251,7 @@ enum SupportDevice
 	sdASUS_RogAlly,
 };
 static enum SupportDevice g_SupportDevice = sdNone;
+static int g_SubModel = 0;
 
 static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *Version)
 {
@@ -267,6 +268,11 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 			else if (strcasecmp(ProductName, "AIR Lite") == 0) g_SupportDevice = sdAYANEO_AIRLite;
 			else if (strcasecmp(ProductName, "AIR Pro") == 0) g_SupportDevice = sdAYANEO_AIRPro;
 			else if (strcasecmp(ProductName, "AIR Plus") == 0) g_SupportDevice = sdAYANEO_AIRPlus;
+			else if (strcasecmp(ProductName, "AB05-Mendocino") == 0 || strcasecmp(ProductName, "AB05-Intel") == 0)
+			{
+				g_SupportDevice = sdAYANEO_AIRPlus;
+				g_SubModel = 1;
+			}			
 			else if (strcasecmp(ProductName, "AIR 1S") == 0) g_SupportDevice = sdAYANEO_AIR1S;
 			else if (strcasecmp(ProductName, "AYA NEO FOUNDER") == 0 || strcasecmp(ProductName, "AYANEO 2021") == 0) g_SupportDevice = sdAYANEO_2021;
 			else if (strcasecmp(ProductName, "AYANEO 2021 Pro") == 0 || strcasecmp(ProductName, "AYANEO 2021 Retro Power") == 0) g_SupportDevice = sdAYANEO_2021Pro;
@@ -553,7 +559,11 @@ void UpdateFanControl(int FanSpeed)
 	{
 		if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44B, fan);
 		else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamOperate(0, 0, 0x44B, fan);
-		else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider) ECRamOperate(0, 0, 0x1804, fan);
+		else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider)
+		{
+			if (g_SubModel == 1) ECRamOperate(0, 0, 0x1802, fan);
+			else ECRamOperate(0, 0, 0x1804, fan);
+		}
 		else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4B, fan);
 		else if (g_FanControlType == fctOneXPlayer2) ECRamOperate(0, 0, 0x44B, fan);
 		else if (g_FanControlType == fctOneXPlayerMini) ECRamOperate(0, 0, 0x44B, fan);
