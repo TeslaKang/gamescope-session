@@ -59,7 +59,7 @@ fi
 AIR_LIST="AYANEO 2:AYANEO 2S:GEEK:GEEK 1S"
 if [[ ":$AIR_LIST:" =~ ":$SYS_ID:"  ]]; then
   PANEL_TYPE=external
-  ORIENTATION=left
+  ORIENTATION=right
 fi
 
 # AYANEO FLIP Dual Screen
