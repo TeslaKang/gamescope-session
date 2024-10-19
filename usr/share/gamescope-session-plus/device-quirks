@@ -49,7 +49,14 @@ if [[ ":$OXP_X1_144_LIST:" =~ ":$SYS_ID:"  ]]; then
 fi
 
 # AYANEO AIR, SLIDE, and FLIP Keyboard Devices
-AIR_LIST="AIR:AIR Pro:AIR Plus:AIR 1S:SLIDE:FLIP KB:"
+AIR_LIST="AIR:AIR Pro:AIR Plus:AIR 1S:SLIDE:FLIP KB"
+if [[ ":$AIR_LIST:" =~ ":$SYS_ID:"  ]]; then
+  PANEL_TYPE=external
+  ORIENTATION=left
+fi
+
+# AYANEO 2
+AIR_LIST="AYANEO 2:AYANEO 2S:GEEK:GEEK 1S"
 if [[ ":$AIR_LIST:" =~ ":$SYS_ID:"  ]]; then
   PANEL_TYPE=external
   ORIENTATION=left

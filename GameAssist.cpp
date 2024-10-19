@@ -571,7 +571,7 @@ void UpdateFanControl(int FanSpeed)
 		if (g_FanControlType == fctAyaNeo2)
 		{
 			//ECRamWrite(0, 0x44B, fan);
-			ECWrite(0x4B, fan);
+			ECRamWrite(0, 0x4B, fan);
 		} 
 		else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamWrite(0, 0x44B, fan);
 		else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider)
@@ -594,7 +594,7 @@ void SetFanControlManual(int Manual)
 	if (g_FanControlType == fctAyaNeo2)
 	{
 		 //ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-		 ECRamWrite(0x4A, Manual == 0 ? 0x00 : 0x01);
+		 ECRamWrite(0, 0x4A, Manual == 0 ? 0x00 : 0x01);
 	}
 	else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider) ECRamWrite(0, 0xd1c8, Manual == 0 ? 0x00 : 0xa5);
