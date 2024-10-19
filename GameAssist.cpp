@@ -288,6 +288,7 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 			else if (strcasecmp(ProductName, "AYANEO 2021 Pro") == 0 || strcasecmp(ProductName, "AYANEO 2021 Retro Power") == 0) g_SupportDevice = sdAYANEO_2021Pro;
 			else if (strcasecmp(ProductName, "NEXT") == 0 || strcasecmp(ProductName,  "NEXT Pro") == 0 || strcasecmp(ProductName, "NEXT Advance") == 0) g_SupportDevice = sdAYANEO_NEXT;
 			else if (strcasecmp(ProductName, "AYANEO 2") == 0 || strcasecmp(ProductName, "GEEK") == 0) g_SupportDevice = sdAYANEO_2;
+			else if (strcasecmp(ProductName, "AYANEO 2S") == 0 || strcasecmp(ProductName, "GEEK 1S") == 0) g_SupportDevice = sdAYANEO_2;
 			else if (strcasecmp(ProductName, "KUN") == 0) g_SupportDevice = sdAYANEO_KUN;
 			else if (strcasecmp(ProductName, "AS01") == 0) g_SupportDevice = sdAYANEO_SLIDER;
 			else if (strcasecmp(ProductName, "FLIP DS") == 0 || strcasecmp(ProductName, "FLIP KB") == 0) g_SupportDevice = sdAYANEO_FLIP;			
