@@ -104,6 +104,16 @@ static uint8_t ECRamOperate(uint8_t isWin4, uint8_t isRead, uint16_t address, ui
 	return data;
 }
 
+static uint8_t ECRamRead(uint8_t isWin4, uint16_t address)
+{
+	return ECRamOperate(isWin4, true, address, 0);
+}
+
+static void ECRamWrite(uint8_t isWin4, uint16_t address, uint8_t data)
+{
+	ECRamOperate(isWin4, false, address, data);
+}
+
 // Embedded Controller
 
 static uint8_t EC_OBF = 0x01;  // Output Buffer Full
@@ -348,17 +358,17 @@ static int CheckFanEnable(int Force)
 			g_FanControlType = fctGpdWin4;
 
 			// magic code
-			ECRamOperate(1, 1, 0x20, 0x00);
-			ECRamOperate(1, 1, 0x1060, 0x00);
-			ECRamOperate(1, 0, 0x1060, 0x80);
-			//ECRamOperate(1, 0, 0xC311, 0x00); // auto fan
-			//ECRamOperate(1, 1, 0x1841, 0x00);
-			if (ECRamOperate(1, 1, 0x2000, 0) == 0x55)
+			ECRamRead(1, 0x20);
+			ECRamRead(1, 0x1060);
+			ECRamWrite(1, 0x1060, 0x80);
+			//ECRamWrite(1, 0xC311, 0x00); // auto fan
+			//ECRamRead(1, 0x1841);
+			if (ECRamRead(1, 0x2000) == 0x55)
 			{
-				uint8_t EC_Chip_Ver = ECRamOperate(1, 1, 0x1060, 0);
+				uint8_t EC_Chip_Ver = ECRamRead(1, 0x1060);
 				
 				EC_Chip_Ver = EC_Chip_Ver | 0x80;
-				ECRamOperate(1, 0, 0x1060, EC_Chip_Ver);
+				ECRamWrite(1, 0x1060, EC_Chip_Ver);
 			}
 		}
 		else if (g_SupportDevice == sdGPD_WinMini)
@@ -414,14 +424,14 @@ static void AyaNeoLed(int Off)
 		}
 		else if (g_FanControlType == fctAyaNeoAirPlus)
 		{
-			ECRamOperate(0, 0, 0xd187, 0xa5);
-			ECRamOperate(0, 0, 0xd1b2, 0x31);
-			ECRamOperate(0, 0, 0xd1c6, 0x01);
-			ECRamOperate(0, 0, 0xd172, 0x31);
-			ECRamOperate(0, 0, 0xd186, 0x01);
-			ECRamOperate(0, 0, 0xd187, 0xa5);
-	//		ECRamOperate(0, 0, 0xd170, 0x00);
-	//		ECRamOperate(0, 0, 0xd186, 0x01);
+			ECRamWrite(0, 0xd187, 0xa5);
+			ECRamWrite(0, 0xd1b2, 0x31);
+			ECRamWrite(0, 0xd1c6, 0x01);
+			ECRamWrite(0, 0xd172, 0x31);
+			ECRamWrite(0, 0xd186, 0x01);
+			ECRamWrite(0, 0xd187, 0xa5);
+	//		ECRamWrite(0, 0xd170, 0x00);
+	//		ECRamWrite(0, 0xd186, 0x01);
 		}
 	}
 	else
@@ -440,18 +450,18 @@ static void AyaNeoLed(int Off)
 		}
 		else if (g_FanControlType == fctAyaNeoAirPlus)
 		{
-			ECRamOperate(0, 0, 0xd187, 0xa5);
-			ECRamOperate(0, 0, 0xd1b2, 0x31);
-			ECRamOperate(0, 0, 0xd1c6, 0x01);
+			ECRamWrite(0, 0xd187, 0xa5);
+			ECRamWrite(0, 0xd1b2, 0x31);
+			ECRamWrite(0, 0xd1c6, 0x01);
 
-			ECRamOperate(0, 0, 0xd187, 0xa5);
-			ECRamOperate(0, 0, 0xd172, 0x31);
-			ECRamOperate(0, 0, 0xd186, 0x01);
+			ECRamWrite(0, 0xd187, 0xa5);
+			ECRamWrite(0, 0xd172, 0x31);
+			ECRamWrite(0, 0xd186, 0x01);
 
-			ECRamOperate(0, 0, 0xd187, 0xa5);
-			ECRamOperate(0, 0, 0xd170, 0x00);
-			ECRamOperate(0, 0, 0xd186, 0x01);
-			ECRamOperate(0, 0, 0xd160, 0x80);
+			ECRamWrite(0, 0xd187, 0xa5);
+			ECRamWrite(0, 0xd170, 0x00);
+			ECRamWrite(0, 0xd186, 0x01);
+			ECRamWrite(0, 0xd160, 0x80);
 		}
 	}
 }
@@ -470,20 +480,20 @@ int GetFanValue()
 {
 	if (g_FanControlType == fctAyaNeo2 || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip)
 	{
-		int val = ECRamOperate(0, 1, 0x1809, 0);
+		int val = ECRamRead(0, 0x1809);
 
 		return MIN(val * 100 / 255, 100);
 	}
 	else if (g_FanControlType == fctAyaNeoAir)
 	{
-		int val = ECRamOperate(0, 1, 0x1803, 0);
+		int val = ECRamRead(0, 0x1803);
 
 		return MIN(val/* * 100 / 255*/, 100);
 	}
 	else if (g_FanControlType == fctAyaNeoAirPlus) // I don't know!!
 	{
-		int rpm = ECRamOperate(0, 1, 0x1821, 0);
-		uint8_t low = ECRamOperate(0, 1, 0x1820, 0);
+		int rpm = ECRamRead(0, 0x1821);
+		uint8_t low = ECRamRead(0, 0x1820);
 
 		return 0xfff - ((rpm << 8) + low);
 	}
@@ -502,35 +512,35 @@ int GetFanValue()
 	}
 	else if (g_FanControlType == fctOneXPlayer2)
 	{
-		int val = ECRamOperate(0, 1, 0x1809, 0);
+		int val = ECRamRead(0, 0x1809);
 
 		return val * 100 / 184;
 	}
 	else if (g_FanControlType == fctOneXPlayerMini)
 	{
-		int val = ECRamOperate(0, 1, 0x1809, 0);
+		int val = ECRamRead(0, 0x1809);
 
 //		return val * 100 / 184;
 		return MIN(val * 100 / 255, 100);
 	}
 	else if (g_FanControlType == fctGpdWinMax2)
 	{
-		int rpm = ECRamOperate(0, 1, 0x218, 0);
-		uint8_t low = ECRamOperate(0, 1, 0x219, 0);
+		int rpm = ECRamRead(0, 0x218);
+		uint8_t low = ECRamRead(0, 0x219);
 
 		return (rpm << 8) | low;
 	}
 	else if (g_FanControlType == fctGpdWin4)
 	{
-		int rpm = ECRamOperate(1, 1, 0xC880, 0);
-		uint8_t low = ECRamOperate(1, 1, 0xC881, 0);
+		int rpm = ECRamRead(1, 0xC880);
+		uint8_t low = ECRamRead(1, 0xC881);
 
 		return (rpm << 8) | low;
 	}
 	else if (g_FanControlType == fctGpdWinMini)
 	{
-		int rpm = ECRamOperate(0, 1, 0x478, 0);
-		uint8_t low = ECRamOperate(0, 1, 0x479, 0);
+		int rpm = ECRamRead(0, 0x478);
+		uint8_t low = ECRamRead(0, 0x479);
 
 		return (rpm << 8) | low;
 	}
@@ -557,39 +567,47 @@ void UpdateFanControl(int FanSpeed)
 	if (max > 0) fan = max * FanSpeed / 100;
 	if (fan >= 0)
 	{
-		if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44B, fan);
-		else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamOperate(0, 0, 0x44B, fan);
+		if (g_FanControlType == fctAyaNeo2)
+		{
+			//ECRamWrite(0, 0x44B, fan);
+			ECWrite(0x4B, fan);
+		} 
+		else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamWrite(0, 0x44B, fan);
 		else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider)
 		{
-			if (g_SubModel == 1) ECRamOperate(0, 0, 0x1802, fan);
-			else ECRamOperate(0, 0, 0x1804, fan);
+			if (g_SubModel == 1) ECRamWrite(0, 0x1802, fan);
+			else ECRamWrite(0, 0x1804, fan);
 		}
 		else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4B, fan);
-		else if (g_FanControlType == fctOneXPlayer2) ECRamOperate(0, 0, 0x44B, fan);
-		else if (g_FanControlType == fctOneXPlayerMini) ECRamOperate(0, 0, 0x44B, fan);
-		else if (g_FanControlType == fctGpdWinMax2) ECRamOperate(0, 0, 0x1809, fan);
-		else if (g_FanControlType == fctGpdWin4) ECRamOperate(1, 0, 0xC311, fan < 1 ? 1 : fan);
-		else if (g_FanControlType == fctGpdWinMini) ECRamOperate(0, 0, 0x47a, fan);
+		else if (g_FanControlType == fctOneXPlayer2) ECRamWrite(0, 0x44B, fan);
+		else if (g_FanControlType == fctOneXPlayerMini) ECRamWrite(0, 0x44B, fan);
+		else if (g_FanControlType == fctGpdWinMax2) ECRamWrite(0, 0x1809, fan);
+		else if (g_FanControlType == fctGpdWin4) ECRamWrite(1, 0xC311, fan < 1 ? 1 : fan);
+		else if (g_FanControlType == fctGpdWinMini) ECRamWrite(0, 0x47a, fan);
 	}
 }
 
 extern "C"
 void SetFanControlManual(int Manual)
 {
-	if (g_FanControlType == fctAyaNeo2) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider) ECRamOperate(0, 0, 0xd1c8, Manual == 0 ? 0x00 : 0xa5);
+	if (g_FanControlType == fctAyaNeo2)
+	{
+		 //ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+		 ECRamWrite(0x4A, Manual == 0 ? 0x00 : 0x01);
+	}
+	else if (g_FanControlType == fctAyaNeoAir || g_FanControlType == fctAyaNeoAir1S || g_FanControlType == fctAyaNeoKun || g_FanControlType == fctAyaNeoFlip) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctAyaNeoAirPlus || g_FanControlType == fctAyaNeoSlider) ECRamWrite(0, 0xd1c8, Manual == 0 ? 0x00 : 0xa5);
 	else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctOneXPlayer2) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctOneXPlayerMini) ECRamOperate(0, 0, 0x44A, Manual == 0 ? 0x00 : 0x01);
-	else if (g_FanControlType == fctGpdWinMax2) ECRamOperate(0, 0, 0x275, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctOneXPlayer2) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctOneXPlayerMini) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctGpdWinMax2) ECRamWrite(0, 0x275, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctGpdWin4)
 	{
-		if (Manual == 0) ECRamOperate(1, 0, 0xC311, 0x00);
+		if (Manual == 0) ECRamWrite(1, 0xC311, 0x00);
 	}
 	else if (g_FanControlType == fctGpdWinMini)
 	{
-		if (Manual == 0) ECRamOperate(0, 0, 0x47a, 0x00);
+		if (Manual == 0) ECRamWrite(0, 0x47a, 0x00);
 	}
 	if (Manual) UpdateFanControl(30);
 }
