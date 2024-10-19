@@ -862,7 +862,7 @@ int main(int argc, char* argv[])
 	SetFanControlManual(0);
 
 	// AyaNeo LED
-	if (argc >= 2 && strcmp(argv[1], "on") == 0) AyaNeoLed(1);
-	else if (argc >= 2 && strcmp(argv[1], "off") == 0) AyaNeoLed(0);
+	if (argc >= 2 && strcmp(argv[1], "on") == 0) AyaNeoLed(0);
+	else if (argc >= 2 && strcmp(argv[1], "off") == 0) AyaNeoLed(1);
 	return 0;
 }
