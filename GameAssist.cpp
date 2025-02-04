@@ -353,7 +353,7 @@ static int CheckFanEnable(int Force)
 		if (g_SupportDevice == sdOne_XPlayerMiniIntel || g_SupportDevice == sdOne_XPlayerMiniAMD) g_FanControlType = fctOneXPlayerMini;
 		else if (g_SupportDevice == sdOne_XPlayerMiniPro || g_SupportDevice == sdAOKZOE_A1 || g_SupportDevice == sdAOKZOE_A1Pro) g_FanControlType = fctOneXPlayerMini;
 		else if (g_SupportDevice == sdOne_XPlayer2) g_FanControlType = fctOneXPlayer2;
-		else if (g_SupportDevice == sdOne_XPlayerFly) m_FanControlType = fctOneXPlayerFly;
+		else if (g_SupportDevice == sdOne_XPlayerFly) g_FanControlType = fctOneXPlayerFly;
 		else if (g_SupportDevice == sdAYANEO_2) g_FanControlType = fctAyaNeo2;
 		else if (g_SupportDevice == sdAYANEO_AIR || g_SupportDevice == sdAYANEO_AIRLite || g_SupportDevice == sdAYANEO_AIRPro) g_FanControlType = fctAyaNeoAir;
 		else if (g_SupportDevice == sdAYANEO_AIR1S) g_FanControlType = fctAyaNeoAir1S;
