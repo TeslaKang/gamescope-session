@@ -299,8 +299,10 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 		{
 			if (strcasecmp(ProductName, "G1619-03") == 0) g_SupportDevice = sdGPD_WinMax2Intel;
 			else if (strcasecmp(ProductName, "G1619-04") == 0) g_SupportDevice = sdGPD_WinMax2AMD;
+			else if (strcasecmp(ProductName, "G1619-05") == 0) g_SupportDevice = sdGPD_WinMax2AMD;
 			else if (strcasecmp(ProductName, "G1618-04") == 0) g_SupportDevice = sdGPD_Win4;
 			else if (strcasecmp(ProductName, "G1617-01") == 0) g_SupportDevice = sdGPD_WinMini;
+			else if (strcasecmp(ProductName, "G1617-02") == 0) g_SupportDevice = sdGPD_WinMini;
 		}
 		else if (strcasecmp(ManufacturerName, "ONE-NETBOOK TECHNOLOGY CO., LTD.") == 0 || strcasecmp(ManufacturerName, "ONE-NETBOOK") == 0)
 		{
