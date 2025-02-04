@@ -258,6 +258,7 @@ enum SupportDevice
 	sdOne_XPlayerMiniIntel,
 	sdOne_XPlayerMiniPro,
 	sdOne_XPlayer2,
+	sdOne_XPlayerFly,
 	sdASUS_RogAlly,
 };
 static enum SupportDevice g_SupportDevice = sdNone;
@@ -271,6 +272,7 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 		{
 			if (strcasecmp(ProductName, "AOKZOE A1 AR07") == 0) g_SupportDevice = sdAOKZOE_A1;
 			else if (strcasecmp(ProductName, "AOKZOE A1 Pro") == 0) g_SupportDevice = sdAOKZOE_A1Pro;
+			else if (strcasecmp(ProductName, "AOKZOE A2 Pro") == 0) g_SupportDevice = sdAOKZOE_A1Pro;
 		}
 		else if (strcasecmp(ManufacturerName, "AYADEVICE") == 0 || strcasecmp(ManufacturerName, "AYANEO") == 0)
 		{
@@ -306,9 +308,13 @@ static int DetectSupportModel(char *ManufacturerName, char *ProductName, char *V
 			{
 				if (strcasecmp(Version, "V01") == 0) g_SupportDevice = sdOne_XPlayerMiniAMD;
 				else if (strcasecmp(Version, "1002-C") == 0) g_SupportDevice = sdOne_XPlayerMiniIntel;
-				else if (strcasecmp(Version, "V03") == 0) g_SupportDevice = sdOne_XPlayerMiniPro;				
+				else if (strcasecmp(Version, "V03") == 0) g_SupportDevice = sdOne_XPlayerMiniPro;
 			}
+			else if (strcasecmp(ProductName, "ONEXPLAYER mini A07") == 0) g_SupportDevice = sdOne_XPlayerMiniPro;
 			else if (strcasecmp(ProductName, "ONE XPLAYER2") == 0) g_SupportDevice = sdOne_XPlayer2;
+			else if (strcasecmp(ProductName, "ONEXPLAYER 2 ARP23") == 0 || strcasecmp(ProductName, "ONEXPLAYER 2 PRO ARP23P") == 0 || strcasecmp(ProductName, "ONEXPLAYER 2 PRO ARP23P EVA-01") == 0) g_SupportDevice = sdOne_XPlayer2;
+			else if (strcasecmp(ProductName, "ONEXPLAYER X1 i") == 0 || strcasecmp(ProductName, "ONEXPLAYER X1 A") == 0 || strcasecmp(ProductName, "ONEXPLAYER X1 mini") == 0) g_SupportDevice = sdOne_XPlayer2;
+			else if (strcasecmp(ProductName, "ONEXPLAYER F1") == 0 || strcasecmp(ProductName, "ONEXPLAYER F1Pro") == 0) g_SupportDevice = sdOne_XPlayerFly;
 		}
 		else if (strcasecmp(ManufacturerName, "ASUSTEK COMPUTER INC.") == 0)
 		{
@@ -323,8 +329,9 @@ enum FanControlType
 	fctNotDetect = -1,
 	fctNone,
 	fctOneXPlayer,
-	fctOneXPlayerMini,
 	fctOneXPlayer2,
+	fctOneXPlayerMini,
+	fctOneXPlayerFly,	
 	fctAyaNeo2,
 	fctAyaNeoAir,
 	fctAyaNeoAir1S,
@@ -346,6 +353,7 @@ static int CheckFanEnable(int Force)
 		if (g_SupportDevice == sdOne_XPlayerMiniIntel || g_SupportDevice == sdOne_XPlayerMiniAMD) g_FanControlType = fctOneXPlayerMini;
 		else if (g_SupportDevice == sdOne_XPlayerMiniPro || g_SupportDevice == sdAOKZOE_A1 || g_SupportDevice == sdAOKZOE_A1Pro) g_FanControlType = fctOneXPlayerMini;
 		else if (g_SupportDevice == sdOne_XPlayer2) g_FanControlType = fctOneXPlayer2;
+		else if (g_SupportDevice == sdOne_XPlayerFly) m_FanControlType = fctOneXPlayerFly;
 		else if (g_SupportDevice == sdAYANEO_2) g_FanControlType = fctAyaNeo2;
 		else if (g_SupportDevice == sdAYANEO_AIR || g_SupportDevice == sdAYANEO_AIRLite || g_SupportDevice == sdAYANEO_AIRPro) g_FanControlType = fctAyaNeoAir;
 		else if (g_SupportDevice == sdAYANEO_AIR1S) g_FanControlType = fctAyaNeoAir1S;
@@ -524,6 +532,13 @@ int GetFanValue()
 //		return val * 100 / 184;
 		return MIN(val * 100 / 255, 100);
 	}
+	else if (g_FanControlType == fctOneXPlayerFly)
+	{
+		int val = ECRamRead(0, 0x1809);
+
+		//		return val * 100 / 184;
+		return MIN(val * 100 / 255, 100);
+	}
 	else if (g_FanControlType == fctGpdWinMax2)
 	{
 		int rpm = ECRamRead(0, 0x218);
@@ -561,6 +576,7 @@ void UpdateFanControl(int FanSpeed)
 	else if (g_FanControlType == fctOneXPlayer) max = g_CpuVendor == cvIntel ? 255 : 100;
 	else if (g_FanControlType == fctOneXPlayer2) max = 184;
 	else if (g_FanControlType == fctOneXPlayerMini) max = 255;
+	else if (g_FanControlType == fctOneXPlayerFly) max = 255;
 	else if (g_FanControlType == fctGpdWinMax2) max = 184;
 	else if (g_FanControlType == fctGpdWin4) max = 127;
 	else if (g_FanControlType == fctGpdWinMini) max = 244;
@@ -582,6 +598,7 @@ void UpdateFanControl(int FanSpeed)
 		else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4B, fan);
 		else if (g_FanControlType == fctOneXPlayer2) ECRamWrite(0, 0x44B, fan);
 		else if (g_FanControlType == fctOneXPlayerMini) ECRamWrite(0, 0x44B, fan);
+		else if (g_FanControlType == fctOneXPlayerFly) ECRamWrite(0, 0x44B, fan);
 		else if (g_FanControlType == fctGpdWinMax2) ECRamWrite(0, 0x1809, fan);
 		else if (g_FanControlType == fctGpdWin4) ECRamWrite(1, 0xC311, fan < 1 ? 1 : fan);
 		else if (g_FanControlType == fctGpdWinMini) ECRamWrite(0, 0x47a, fan);
@@ -601,6 +618,7 @@ void SetFanControlManual(int Manual)
 	else if (g_FanControlType == fctOneXPlayer) EcWrite(0x4A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctOneXPlayer2) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctOneXPlayerMini) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
+	else if (g_FanControlType == fctOneXPlayerFly) ECRamWrite(0, 0x44A, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctGpdWinMax2) ECRamWrite(0, 0x275, Manual == 0 ? 0x00 : 0x01);
 	else if (g_FanControlType == fctGpdWin4)
 	{

@@ -121,7 +121,6 @@ fi
 # Steam Deck (Common)
 if [[ ":Jupiter:Galileo:" =~ ":$SYS_ID:" ]]; then
   DRM_MODE=fixed
-  DONT_BYPASS_RESOLUTION=1
 
   # Enables the adaptive brightness toggle
   export STEAM_ENABLE_DYNAMIC_BACKLIGHT=1
@@ -197,4 +196,28 @@ if [[ ":V3:" =~ ":$SYS_ID:"  ]]; then
 
   # Set refresh rate range and enable refresh rate switching
   export STEAM_DISPLAY_REFRESH_LIMITS=36,165
+fi
+
+# XG mobile for ASUS laptops that supports the proprietary connector
+xg_mobile_file_path="/sys/devices/virtual/firmware-attributes/asus-armoury/attributes/egpu_enable/current_value"
+if [ -f "$xg_mobile_file_path" ]; then
+  egpu_status=$(<"$xg_mobile_file_path")
+  if [[ "$egpu_status" -ne 0 ]]; then
+    unset STEAM_DISPLAY_REFRESH_LIMITS
+
+    # XG Mobile 2023: NVIDIA 4090
+    if lspci -nn | grep -Fq "10de:2717"; then
+      export VULKAN_ADAPTER="10de:2717"
+    fi
+
+    # XG Mobile 2022: AMD RX 6850xt
+    if lspci -nn | grep -Fq "1002:73df"; then
+      export VULKAN_ADAPTER="1002:73df"
+    fi
+
+    # XG Mobile 2021: NVIDIA 3080
+    if lspci -nn | grep -q "10de:249c"; then
+      export VULKAN_ADAPTER="1002:249c"
+    fi
+  fi
 fi

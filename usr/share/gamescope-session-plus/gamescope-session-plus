@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 SYS_ID="$(cat /sys/devices/virtual/dmi/id/product_name)"
 
 declare -r CLIENT=$1
@@ -25,9 +27,6 @@ post_client_shutdown() {
 get_gamescope_binary() {
 	if [ -n "$GAMESCOPE_BIN" ]; then
 		echo $GAMESCOPE_BIN
-	elif /usr/libexec/gamescope-sdl-workaround && command -v /usr/bin/gamescope-legacy > /dev/null; then
-		# GPUs that require the SDL backend
-		echo "/usr/bin/gamescope-legacy"
 	else
 		echo "/usr/bin/gamescope"
 	fi
@@ -49,12 +48,7 @@ export mesa_glthread=true
 
 # This should be used by default by gamescope. Cannot hurt to force it anyway.
 # Reported better framelimiting with this enabled
-if /usr/libexec/gamescope-sdl-workaround; then
-	# Skip on legacy hardware
-	export ENABLE_GAMESCOPE_WSI=0
-else
-	export ENABLE_GAMESCOPE_WSI=1
-fi
+export ENABLE_GAMESCOPE_WSI=1
 
 # Force Qt applications to run under xwayland
 export QT_QPA_PLATFORM=xcb
@@ -209,11 +203,6 @@ if [ -z "$GAMESCOPECMD" ]; then
 		PANEL_TYPE_OPTION="--force-panel-type $PANEL_TYPE"
 	fi
 
-	BYPASS_STEAM_RESOLUTION_OPTION=""
-	if [ -n "$BYPASS_STEAM_RESOLUTION" ] && gamescope_has_option "--bypass-steam-resolution"; then
-		BYPASS_STEAM_RESOLUTION_OPTION="--bypass-steam-resolution"
-	fi
-
 	CUSTOM_REFRESH_RATES_OPTION=""
 	if [ -n "$CUSTOM_REFRESH_RATES" ] && gamescope_has_option "--custom-refresh-rates"; then
 		CUSTOM_REFRESH_RATES_OPTION="--custom-refresh-rates $CUSTOM_REFRESH_RATES"
@@ -242,7 +231,6 @@ if [ -z "$GAMESCOPECMD" ]; then
 		$INTERNAL_RESOLUTION \
 		$ORIENTATION_OPTION \
 		$DRM_MODE_OPTION \
-		$BYPASS_STEAM_RESOLUTION_OPTION \
 		$ADAPTIVE_SYNC_OPTION \
 		$PANEL_TYPE_OPTION \
 		$CUSTOM_REFRESH_RATES_OPTION \
@@ -268,7 +256,7 @@ fi
 # fixed by K.Y.H
 short_session_tracker_file="/tmp/steamos-short-session-tracker"
 short_session_duration=60
-short_session_count_before_reset=3
+short_session_count_before_reset=5
 SECONDS=0
 
 short_session_count=$(wc <"$short_session_tracker_file" -l)
@@ -283,25 +271,8 @@ if [[ "$short_session_count" -ge "$short_session_count_before_reset" ]]; then
 	exit 1
 fi
 
-# Log rotate the last session
-if [ -f "${HOME}"/.${CLIENT}-stdout.log ]; then
-	cp "${HOME}"/.${CLIENT}-stdout.log "${HOME}"/.${CLIENT}-stdout.log.old
-fi
-if [ -f "${HOME}"/.gamescope-stdout.log ]; then
-	cp "${HOME}"/.gamescope-stdout.log "${HOME}"/.gamescope-stdout.log.old
-fi
-if [ -f "${HOME}"/.gamescope-cmd.log ]; then
-	cp "${HOME}"/.gamescope-cmd.log "${HOME}"/.gamescope-cmd.log.old
-fi
-
-# added by K.Y.H for arch linux
-if [ -f "/usr/local/bin/gamescope" ]; then
-    GAMESCOPECMD=${GAMESCOPECMD/"/usr/bin/"/"/usr/local/bin/"}
-fi
-
-# Start gamescope compositor, log it's output and background it
-echo $GAMESCOPECMD >"${HOME}"/.gamescope-cmd.log
-$GAMESCOPECMD >"${HOME}"/.gamescope-stdout.log 2>&1 &
+# Start gamescope compositor and background it
+$GAMESCOPECMD &
 gamescope_pid="$!"
 
 if read -r -t 15 response_x_display response_wl_display <> "$socket"; then
@@ -311,7 +282,7 @@ if read -r -t 15 response_x_display response_wl_display <> "$socket"; then
 else
 	echo "gamescope failed" >>"$short_session_tracker_file"
 	kill -9 "$gamescope_pid"
-	wait
+	wait -n "$gamescope_pid"
 	exit 1
 	# Systemd or Session manager will have to restart session
 fi
@@ -327,7 +298,7 @@ fi
 # If we have mangoapp binary start it
 if command -v mangoapp >/dev/null; then
 	(while true; do
-		mangoapp >"${HOME}"/.mangoapp-stdout.log 2>&1
+		mangoapp
 	done) &
 fi
 
@@ -345,7 +316,7 @@ if [ -n "$STEAMCMD" ]; then
 fi
 
 # Start client application
-$CLIENTCMD >"${HOME}/.${CLIENT}-stdout.log" 2>&1
+$CLIENTCMD
 
 if [[ "$SECONDS" -lt "$short_session_duration" ]]; then
 	echo "${CLIENT} failed" >>"$short_session_tracker_file"
